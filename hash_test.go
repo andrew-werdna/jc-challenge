@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -9,11 +10,20 @@ import (
 	"testing"
 )
 
-func TestHashCreator(t *testing.T) {
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
+type args struct {
+	w http.ResponseWriter
+	r *http.Request
+}
+
+func (a args) Clone() args {
+	v := args{
+		r: a.r.Clone(context.Background()),
+		w: httptest.NewRecorder(),
 	}
+	return v
+}
+
+func TestHashCreator(t *testing.T) {
 
 	hpReq, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/hash", bytes.NewReader([]byte("password=angryMonkey")))
 	hpArgs := args{
@@ -23,18 +33,21 @@ func TestHashCreator(t *testing.T) {
 	hpArgs.r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	tests := []struct {
-		name         string
-		args         args
-		shouldReturn int
+		name string
+		args args
 	}{
 		{
-			name:         "should return a simple number",
-			args:         hpArgs,
-			shouldReturn: 1,
+			name: "should return a simple number",
+			args: hpArgs,
+		},
+		{
+			name: "should return the next integer",
+			args: hpArgs.Clone(),
 		},
 	}
-	for _, tt := range tests {
+	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			HashCreator(tt.args.w, tt.args.r)
 			recorder, _ := tt.args.w.(*httptest.ResponseRecorder)
 			resp := recorder.Result()
@@ -43,9 +56,13 @@ func TestHashCreator(t *testing.T) {
 			if err != nil {
 				t.Error("did not return a number")
 			}
-			if val != tt.shouldReturn {
+			if val != i+1 {
 				t.Error("returned unexpected number")
 			}
+			if resp.StatusCode != http.StatusOK {
+				t.Error("unexpected response status")
+			}
+
 		})
 	}
 }
