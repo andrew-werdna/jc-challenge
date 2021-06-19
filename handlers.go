@@ -2,20 +2,13 @@ package main
 
 import "net/http"
 
-func HashHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+func RegisterHandlers() {
+	http.HandleFunc("/hash", HashCreator)
+	http.HandleFunc("/hash/", HashRetriever)
+	http.HandleFunc("/stats", StatsHandler)
+	http.HandleFunc("/shutdown", Shutdown)
 }
 
-func StatsHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+func Shutdown(w http.ResponseWriter, r *http.Request) {
 
 }
