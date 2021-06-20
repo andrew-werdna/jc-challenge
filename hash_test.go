@@ -15,9 +15,17 @@ type args struct {
 	r *http.Request
 }
 
-func (a args) Clone() args {
+func (a args) clone() args {
 	v := args{
 		r: a.r.Clone(context.Background()),
+		w: httptest.NewRecorder(),
+	}
+	return v
+}
+
+func (a args) new(r *http.Request) args {
+	v := args{
+		r: r,
 		w: httptest.NewRecorder(),
 	}
 	return v
@@ -26,10 +34,7 @@ func (a args) Clone() args {
 func TestHashCreator(t *testing.T) {
 
 	hpReq, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/hash", bytes.NewReader([]byte("password=angryMonkey")))
-	hpArgs := args{
-		w: httptest.NewRecorder(),
-		r: hpReq,
-	}
+	hpArgs := args{}.new(hpReq)
 	hpArgs.r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	tests := []struct {
@@ -42,13 +47,13 @@ func TestHashCreator(t *testing.T) {
 		},
 		{
 			name: "should return the next integer",
-			args: hpArgs.Clone(),
+			args: hpArgs.clone(),
 		},
 	}
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			HashCreator(tt.args.w, tt.args.r)
+			HashCreationHandler(tt.args.w, tt.args.r)
 			recorder, _ := tt.args.w.(*httptest.ResponseRecorder)
 			resp := recorder.Result()
 			body, _ := ioutil.ReadAll(resp.Body)
@@ -82,5 +87,14 @@ func TestHashRetriever(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			HashRetriever(tt.args.w, tt.args.r)
 		})
+	}
+}
+
+func TestHashEncode(t *testing.T) {
+	v := "angryMonkey"
+	actual := HashEncode(v)
+	expected := "ZEHhWB65gUlzdVwtDQArEyx+KVLzp/aTaRaPlBzYRIFj6vjFdqEb0Q5B8zVKCZ0vKbZPZklJz0Fd7su2A+gf7Q=="
+	if actual != expected {
+		t.Error("password was not hashed and encoded correctly")
 	}
 }
