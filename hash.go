@@ -3,25 +3,15 @@ package main
 import (
 	"crypto/sha512"
 	"encoding/base64"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"time"
 )
 
 var numHashes int
 
 type DataSet struct {
-	NumPosts   int
-	HashSet    map[int]string
-	WaitLength time.Duration
-}
-
-var logger *log.Logger
-
-func init() {
-	logger = log.New(os.Stdout, "http: ", log.LstdFlags)
+	NumPosts int
+	HashSet  map[int]string
 }
 
 func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +36,9 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 	if len(password) == 1 {
 		p := password[0]
 		logger.Print(p)
+		/**
+		* TODO: write tests for sending the password into the other goroutine
+		 */
 	}
 
 	numHashes++

@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"testing"
 )
@@ -37,6 +39,7 @@ func (a args) new(r *http.Request, p string) args {
 
 func TestHashCreationHandler1(t *testing.T) {
 
+	logger = log.New(os.Stdout, "http: ", log.LstdFlags)
 	hpReq, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/hash", bytes.NewReader([]byte("password=angryMonkey")))
 	hpArgs := args{}.new(hpReq, "someValue")
 
