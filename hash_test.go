@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"testing"
 )
@@ -23,7 +24,10 @@ func (a args) clone() args {
 	return v
 }
 
-func (a args) new(r *http.Request) args {
+func (a args) new(r *http.Request, p string) args {
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Form = make(url.Values)
+	r.Form["password"] = []string{p}
 	v := args{
 		r: r,
 		w: httptest.NewRecorder(),
@@ -31,11 +35,10 @@ func (a args) new(r *http.Request) args {
 	return v
 }
 
-func TestHashCreator(t *testing.T) {
+func TestHashCreationHandler1(t *testing.T) {
 
 	hpReq, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/hash", bytes.NewReader([]byte("password=angryMonkey")))
-	hpArgs := args{}.new(hpReq)
-	hpArgs.r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	hpArgs := args{}.new(hpReq, "someValue")
 
 	tests := []struct {
 		name string
@@ -70,6 +73,7 @@ func TestHashCreator(t *testing.T) {
 
 		})
 	}
+
 }
 
 func TestHashRetriever(t *testing.T) {
