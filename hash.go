@@ -14,6 +14,13 @@ type DataSet struct {
 	HashSet  map[int]string
 }
 
+func (d DataSet) New() DataSet {
+	return DataSet{
+		NumPosts: 0,
+		HashSet:  make(map[int]string),
+	}
+}
+
 func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
