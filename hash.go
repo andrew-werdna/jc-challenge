@@ -5,23 +5,25 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strconv"
+	"time"
 )
 
-var numHashes int
-
 type DataSet struct {
-	NumPosts int
-	HashSet  map[int]string
+	NumPosts    int
+	HashSet     map[int]string
+	TrackedTime int // time spent processing /hash POST requests in microseconds
 }
 
 func (d DataSet) New() DataSet {
 	return DataSet{
-		NumPosts: 0,
-		HashSet:  make(map[int]string),
+		NumPosts:    0,
+		HashSet:     make(map[int]string),
+		TrackedTime: 0,
 	}
 }
 
 func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -40,6 +42,11 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer func(t time.Time) {
+		duration := time.Since(t)
+		PostTracker.TrackedTime += int(duration.Microseconds())
+	}(start)
+
 	if len(password) == 1 {
 		p := password[0]
 		logger.Print(p)
@@ -48,8 +55,8 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 		 */
 	}
 
-	numHashes++
-	val := strconv.Itoa(numHashes)
+	PostTracker.NumPosts++
+	val := strconv.Itoa(PostTracker.NumPosts)
 	w.Write([]byte(val))
 
 }
