@@ -80,10 +80,6 @@ func TestHashCreationHandler1(t *testing.T) {
 }
 
 func TestHashRetriever(t *testing.T) {
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
 	tests := []struct {
 		name string
 		args args
