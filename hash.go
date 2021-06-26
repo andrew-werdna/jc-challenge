@@ -27,18 +27,21 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		logger.Println("ERROR: not a post request")
 		return
 	}
 
 	parseFormErr := r.ParseForm()
 	if parseFormErr != nil {
 		http.Error(w, "unable to parse body as form", http.StatusInternalServerError)
+		logger.Println("ERROR: unable to parse body as form")
 		return
 	}
 
 	password, ok := r.Form["password"]
 	if !ok {
 		http.Error(w, "password field not found", http.StatusBadRequest)
+		logger.Println("ERROR: password field not found")
 		return
 	}
 

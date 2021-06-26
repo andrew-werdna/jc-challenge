@@ -9,18 +9,19 @@ import (
 
 var (
 	logger      *log.Logger
-	port        string
+	addr        string
 	PostTracker DataSet
 )
 
 func main() {
 	PostTracker = DataSet{}.New()
-	flag.StringVar(&port, "p", ":8880", "port to listen on")
+	flag.StringVar(&addr, "p", "127.0.0.1:8880", "port to listen on")
 	flag.Parse()
 	logger = log.New(os.Stdout, "http: ", log.LstdFlags)
 
 	RegisterHandlers()
-	log.Fatal(http.ListenAndServe(port, nil))
+	logger.Println("starting server...")
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
 func RegisterHandlers() {
