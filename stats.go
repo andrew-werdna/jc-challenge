@@ -25,8 +25,7 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(s)
 
 	if err != nil {
-		w.Write([]byte("something went wrong marshalling json resonse"))
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "something went wrong marshalling json resonse", http.StatusInternalServerError)
 		logger.Println("something went wrong marshalling json resonse")
 		return
 	}

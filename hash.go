@@ -4,6 +4,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"net/http"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -53,6 +54,15 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(password) != 1 {
+		http.Error(w, "can only handle 1 password per POST request", http.StatusInternalServerError)
+		logger.Println("can only handle 1 password per POST request")
+		return
+	}
+
+	p := password[0]
+	var key int
+
 	defer func(t time.Time) {
 		duration := time.Since(t)
 		PostTracker.m.Lock()
@@ -60,22 +70,42 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 		PostTracker.m.Unlock()
 	}(start)
 
-	if len(password) == 1 {
-		p := password[0]
-		logger.Print(p)
-		/**
-		* TODO: write tests for sending the password into the other goroutine
-		 */
-	}
-
+	PostTracker.m.Lock()
 	PostTracker.NumPosts++
+	key = PostTracker.NumPosts
+	PostTracker.m.Unlock()
+
+	go HashProcess(key, p, 5*time.Second)
 	val := strconv.Itoa(PostTracker.NumPosts)
 	w.Write([]byte(val))
 
 }
 
 func HashRetriever(w http.ResponseWriter, r *http.Request) {
+	b := path.Base(r.URL.Path)
+	key, err := strconv.Atoi(b)
+	if err != nil {
+		http.Error(w, "unable to convert path segment to number", http.StatusInternalServerError)
+		logger.Println("unable to convert path segment to number")
+		return
+	}
+	PostTracker.m.RLock()
+	hash, ok := PostTracker.HashSet[key]
+	PostTracker.m.RUnlock()
+	if !ok {
+		http.Error(w, "unable to retrieve hash", http.StatusNotFound)
+		logger.Println("unable to retrieve hash")
+		return
+	}
+	w.Write([]byte(hash))
+}
 
+func HashProcess(key int, password string, waitUntil time.Duration) {
+	time.Sleep(waitUntil)
+	hashed := HashEncode(password)
+	PostTracker.m.Lock()
+	PostTracker.HashSet[key] = hashed
+	PostTracker.m.Unlock()
 }
 
 func HashEncode(v string) string {
