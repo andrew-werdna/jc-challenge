@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 )
 
 var (
@@ -12,6 +13,7 @@ var (
 	addr        string
 	RequestInfo RequestData
 	server      *http.Server
+	WG          sync.WaitGroup
 )
 
 func init() {
@@ -37,6 +39,7 @@ func main() {
 		logger.Fatalf("Could not listen on %s: %v\n", addr, err)
 	}
 
+	WG.Wait()
 	logger.Println("server stopped")
 }
 

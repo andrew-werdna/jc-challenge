@@ -13,8 +13,15 @@ import (
 type RequestData struct {
 	Posts       int
 	Hashes      map[int]string
-	TrackedTime int // time spent processing /hash POST requests in microseconds
+	TrackedTime int // time spent processing /hash POST requests in microseconds NOT including the hash function with 5 second delay
 	m           *sync.RWMutex
+}
+
+type HashArgs struct {
+	key       int
+	password  string
+	waitUntil time.Duration
+	wg        *sync.WaitGroup
 }
 
 func (d RequestData) New() RequestData {
@@ -70,7 +77,15 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 	key = RequestInfo.Posts
 	RequestInfo.m.Unlock()
 
-	go HashProcess(key, p, 5*time.Second)
+	a := HashArgs{
+		key:       key,
+		password:  p,
+		waitUntil: 5 * time.Second,
+		wg:        &WG,
+	}
+
+	WG.Add(1)
+	go HashProcess(a)
 	val := strconv.Itoa(RequestInfo.Posts)
 	w.Write([]byte(val))
 
@@ -95,11 +110,12 @@ func HashRetriever(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(hash))
 }
 
-func HashProcess(key int, password string, waitUntil time.Duration) {
-	time.Sleep(waitUntil)
-	hashed := HashEncode(password)
+func HashProcess(ha HashArgs) {
+	defer ha.wg.Done()
+	time.Sleep(ha.waitUntil)
+	hashed := HashEncode(ha.password)
 	RequestInfo.m.Lock()
-	RequestInfo.Hashes[key] = hashed
+	RequestInfo.Hashes[ha.key] = hashed
 	RequestInfo.m.Unlock()
 }
 
