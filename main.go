@@ -15,7 +15,7 @@ var (
 
 func main() {
 	PostTracker = DataSet{}.New()
-	flag.StringVar(&addr, "p", "127.0.0.1:8880", "port to listen on")
+	flag.StringVar(&addr, "p", ":8880", "port to listen on")
 	flag.Parse()
 	logger = log.New(os.Stdout, "http: ", log.LstdFlags)
 

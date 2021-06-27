@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,12 @@ type DataSet struct {
 	NumPosts    int
 	HashSet     map[int]string
 	TrackedTime int // time spent processing /hash POST requests in microseconds
+	m           *sync.RWMutex
+}
+
+type NumHash struct {
+	Key   int
+	Value string
 }
 
 func (d DataSet) New() DataSet {
@@ -19,6 +26,7 @@ func (d DataSet) New() DataSet {
 		NumPosts:    0,
 		HashSet:     make(map[int]string),
 		TrackedTime: 0,
+		m:           &sync.RWMutex{},
 	}
 }
 
@@ -47,7 +55,9 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer func(t time.Time) {
 		duration := time.Since(t)
+		PostTracker.m.Lock()
 		PostTracker.TrackedTime += int(duration.Microseconds())
+		PostTracker.m.Unlock()
 	}(start)
 
 	if len(password) == 1 {
