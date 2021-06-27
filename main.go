@@ -10,23 +10,39 @@ import (
 var (
 	logger      *log.Logger
 	addr        string
-	PostTracker DataSet
+	RequestInfo RequestData
+	server      *http.Server
 )
 
-func main() {
-	PostTracker = DataSet{}.New()
-	flag.StringVar(&addr, "p", ":8880", "port to listen on")
-	flag.Parse()
+func init() {
+	RequestInfo = RequestData{}.New()
 	logger = log.New(os.Stdout, "http: ", log.LstdFlags)
-
-	RegisterHandlers()
-	logger.Println("starting server...")
-	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
-func RegisterHandlers() {
-	http.HandleFunc("/hash", HashCreationHandler)
-	http.HandleFunc("/hash/", HashRetriever)
-	http.HandleFunc("/stats", StatsHandler)
-	http.HandleFunc("/shutdown", Shutdown)
+func main() {
+	flag.StringVar(&addr, "p", ":8880", "port to listen on")
+	flag.Parse()
+
+	router := http.NewServeMux()
+	RegisterHandlers(router)
+
+	server = &http.Server{
+		Addr:     addr,
+		Handler:  router,
+		ErrorLog: logger,
+	}
+
+	logger.Println("starting server...")
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Fatalf("Could not listen on %s: %v\n", addr, err)
+	}
+
+	logger.Println("server stopped")
+}
+
+func RegisterHandlers(mux *http.ServeMux) {
+	mux.HandleFunc("/hash", HashCreationHandler)
+	mux.HandleFunc("/hash/", HashRetriever)
+	mux.HandleFunc("/stats", StatsHandler)
+	mux.HandleFunc("/shutdown", Shutdown)
 }

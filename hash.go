@@ -10,22 +10,17 @@ import (
 	"time"
 )
 
-type DataSet struct {
-	NumPosts    int
-	HashSet     map[int]string
+type RequestData struct {
+	Posts       int
+	Hashes      map[int]string
 	TrackedTime int // time spent processing /hash POST requests in microseconds
 	m           *sync.RWMutex
 }
 
-type NumHash struct {
-	Key   int
-	Value string
-}
-
-func (d DataSet) New() DataSet {
-	return DataSet{
-		NumPosts:    0,
-		HashSet:     make(map[int]string),
+func (d RequestData) New() RequestData {
+	return RequestData{
+		Posts:       0,
+		Hashes:      make(map[int]string),
 		TrackedTime: 0,
 		m:           &sync.RWMutex{},
 	}
@@ -65,18 +60,18 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer func(t time.Time) {
 		duration := time.Since(t)
-		PostTracker.m.Lock()
-		PostTracker.TrackedTime += int(duration.Microseconds())
-		PostTracker.m.Unlock()
+		RequestInfo.m.Lock()
+		RequestInfo.TrackedTime += int(duration.Microseconds())
+		RequestInfo.m.Unlock()
 	}(start)
 
-	PostTracker.m.Lock()
-	PostTracker.NumPosts++
-	key = PostTracker.NumPosts
-	PostTracker.m.Unlock()
+	RequestInfo.m.Lock()
+	RequestInfo.Posts++
+	key = RequestInfo.Posts
+	RequestInfo.m.Unlock()
 
 	go HashProcess(key, p, 5*time.Second)
-	val := strconv.Itoa(PostTracker.NumPosts)
+	val := strconv.Itoa(RequestInfo.Posts)
 	w.Write([]byte(val))
 
 }
@@ -89,9 +84,9 @@ func HashRetriever(w http.ResponseWriter, r *http.Request) {
 		logger.Println("unable to convert path segment to number")
 		return
 	}
-	PostTracker.m.RLock()
-	hash, ok := PostTracker.HashSet[key]
-	PostTracker.m.RUnlock()
+	RequestInfo.m.RLock()
+	hash, ok := RequestInfo.Hashes[key]
+	RequestInfo.m.RUnlock()
 	if !ok {
 		http.Error(w, "unable to retrieve hash", http.StatusNotFound)
 		logger.Println("unable to retrieve hash")
@@ -103,9 +98,9 @@ func HashRetriever(w http.ResponseWriter, r *http.Request) {
 func HashProcess(key int, password string, waitUntil time.Duration) {
 	time.Sleep(waitUntil)
 	hashed := HashEncode(password)
-	PostTracker.m.Lock()
-	PostTracker.HashSet[key] = hashed
-	PostTracker.m.Unlock()
+	RequestInfo.m.Lock()
+	RequestInfo.Hashes[key] = hashed
+	RequestInfo.m.Unlock()
 }
 
 func HashEncode(v string) string {

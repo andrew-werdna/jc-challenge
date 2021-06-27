@@ -6,8 +6,8 @@ import (
 )
 
 type Stat struct {
-	NumPosts    int `json:"total"`
-	AverageTime int `json:"average"`
+	Total   int `json:"total"`
+	Average int `json:"average"`
 }
 
 func StatsHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,10 +18,17 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s := Stat{}
-	PostTracker.m.RLock()
-	s.NumPosts = PostTracker.NumPosts
-	s.AverageTime = PostTracker.TrackedTime / s.NumPosts
-	PostTracker.m.RUnlock()
+	RequestInfo.m.RLock()
+	s.Total = RequestInfo.Posts
+	trackedTime := RequestInfo.TrackedTime
+	RequestInfo.m.RUnlock()
+
+	if s.Total == 0 {
+		http.Error(w, "no posts or hashes yet", http.StatusForbidden)
+		return
+	}
+
+	s.Average = trackedTime / s.Total
 	data, err := json.Marshal(s)
 
 	if err != nil {
