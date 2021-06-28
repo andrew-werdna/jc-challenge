@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 )
 
 var (
@@ -14,11 +15,13 @@ var (
 	RequestInfo RequestData
 	server      *http.Server
 	WG          sync.WaitGroup
+	waitTime    time.Duration
 )
 
 func init() {
 	RequestInfo = RequestData{}.New()
 	logger = log.New(os.Stdout, "http: ", log.LstdFlags)
+	waitTime = 5 * time.Second
 }
 
 func main() {

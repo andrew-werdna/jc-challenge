@@ -88,7 +88,7 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 	a := HashArgs{
 		key:       key,
 		password:  p,
-		waitUntil: 5 * time.Second,
+		waitUntil: waitTime,
 		wg:        &WG,
 	}
 

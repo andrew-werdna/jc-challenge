@@ -55,6 +55,10 @@ func TestHashCreationHandler1(t *testing.T) {
 			name: "should return the next integer",
 			args: hpArgs.clone(),
 		},
+		{
+			name: "should return the next integer",
+			args: hpArgs.clone(),
+		},
 	}
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -63,7 +67,7 @@ func TestHashCreationHandler1(t *testing.T) {
 			recorder, _ := tt.args.w.(*httptest.ResponseRecorder)
 			resp := recorder.Result()
 			body, _ := ioutil.ReadAll(resp.Body)
-			val, err := strconv.Atoi(string(body))
+			val, err := strconv.Atoi(string(body[:len(body)-1]))
 			if err != nil {
 				t.Error("did not return a number")
 			}
