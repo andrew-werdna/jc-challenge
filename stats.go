@@ -7,12 +7,14 @@ import (
 
 // The Stat type is used to return the statistics for the number of POST requests
 // and the average time spent processing those requests NOT including the long running
-// goroutine that creates the hash
+// goroutine that creates the hash.
 type Stat struct {
 	Total   int `json:"total"`
 	Average int `json:"average"`
 }
 
+// StatsHandler is an http.Handler bound to the /stats endpoint and returns
+// a JSON object marshalled from an instance of the Stat structure above.
 func StatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodGet {

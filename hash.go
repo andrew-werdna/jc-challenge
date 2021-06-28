@@ -41,6 +41,10 @@ type HashArgs struct {
 	wg        *sync.WaitGroup
 }
 
+// HashCreationHandler is bound to the /hash endpoint and returns an incrementing
+// integer number immediately, while kicking off a background process that hashes
+// the passed in password. To simulate a long running process the goroutine sleeps
+// for five seconds before doing its work.
 func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
@@ -99,17 +103,30 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// HashRetriever is an http.Handler bound to the /hash/{/[1-9]+/s} (regex between curly braces and delimited with slashes) endpoint.
+// This handler receives the number in the url returned from the /hash endpoint and returns the hashed, base64 encoded password that
+// was also given to the server on the /hash endpoint.
 func HashRetriever(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		logger.Println("ERROR: not a post request")
+		return
+	}
+
 	b := path.Base(r.URL.Path)
 	key, err := strconv.Atoi(b)
+
 	if err != nil {
 		http.Error(w, "unable to convert path segment to number", http.StatusInternalServerError)
 		logger.Println("unable to convert path segment to number")
 		return
 	}
+
 	RequestInfo.m.RLock()
 	hash, ok := RequestInfo.Hashes[key]
 	RequestInfo.m.RUnlock()
+
 	if !ok {
 		http.Error(w, "unable to retrieve hash", http.StatusNotFound)
 		logger.Println("unable to retrieve hash")
@@ -118,6 +135,8 @@ func HashRetriever(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(hash))
 }
 
+// HashProcess is a helper func ready to be run in another goroutine. It will update our storage object
+// with the integer key returned to the user, and the hashed, base64 encoded password the user passed in.
 func HashProcess(ha HashArgs) {
 	defer ha.wg.Done()
 	time.Sleep(ha.waitUntil)
@@ -127,6 +146,8 @@ func HashProcess(ha HashArgs) {
 	RequestInfo.m.Unlock()
 }
 
+// HashEncode is a helper func that takes a password string, hashes it with sha512 encoding scheme,
+// and then returns the base64 string encoding of the hashed result.
 func HashEncode(v string) string {
 	h := sha512.New()
 	h.Write([]byte(v))
