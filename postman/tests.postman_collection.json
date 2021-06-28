@@ -1,0 +1,96 @@
+{
+	"info": {
+		"_postman_id": "9cd1f31f-1788-456b-b7ed-da97a30ccfe5",
+		"name": "tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Hash",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "password",
+							"value": "angryMonkey",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{host}}:{{port}}/hash",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"hash"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Stats",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{host}}:{{port}}/stats",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"stats"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Hash",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{host}}:{{port}}/hash/1",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"hash",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Shut 'er Down",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{host}}:{{port}}/shutdown",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"shutdown"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
