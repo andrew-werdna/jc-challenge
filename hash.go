@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha512"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"path"
 	"strconv"
@@ -10,20 +11,18 @@ import (
 	"time"
 )
 
+// RequestData is a type intended for keeping track of the number of POST requests for hashes,
+// the association between POST number as a key and the actual hash as value,
+// and the tracked time for the /stats endpoint.
 type RequestData struct {
 	Posts       int
 	Hashes      map[int]string
-	TrackedTime int // time spent processing /hash POST requests in microseconds NOT including the hash function with 5 second delay
+	TrackedTime int
 	m           *sync.RWMutex
 }
 
-type HashArgs struct {
-	key       int
-	password  string
-	waitUntil time.Duration
-	wg        *sync.WaitGroup
-}
-
+// New() is a convenience function for creating a new struct to track what we care about.
+// See RequestData struct type for the information we care to track.
 func (d RequestData) New() RequestData {
 	return RequestData{
 		Posts:       0,
@@ -31,6 +30,15 @@ func (d RequestData) New() RequestData {
 		TrackedTime: 0,
 		m:           &sync.RWMutex{},
 	}
+}
+
+// HashArgs is a type meant to make a long argument list to the HashProcess func
+// shorter and easier to work with.
+type HashArgs struct {
+	key       int
+	password  string
+	waitUntil time.Duration
+	wg        *sync.WaitGroup
 }
 
 func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +95,7 @@ func HashCreationHandler(w http.ResponseWriter, r *http.Request) {
 	WG.Add(1)
 	go HashProcess(a)
 	val := strconv.Itoa(RequestInfo.Posts)
-	w.Write([]byte(val))
+	fmt.Fprintln(w, val)
 
 }
 

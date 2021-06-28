@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 )
 
+// Shutdown is the http.Handler responsible for shutting down the server and
+// initiating it in a graceful fashion
 func Shutdown(w http.ResponseWriter, r *http.Request) {
 	logger.Println("Server is shutting down...")
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte("Shutdown Started..."))
+	fmt.Fprintln(w, "Shutdown Started...")
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

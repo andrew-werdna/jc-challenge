@@ -5,6 +5,9 @@ import (
 	"net/http"
 )
 
+// The Stat type is used to return the statistics for the number of POST requests
+// and the average time spent processing those requests NOT including the long running
+// goroutine that creates the hash
 type Stat struct {
 	Total   int `json:"total"`
 	Average int `json:"average"`
