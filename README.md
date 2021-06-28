@@ -15,4 +15,4 @@ While I've used multithreaded code in Go regularly, none of us on my team have m
 
 ### Other Notes and E2E Testing
 
-I've included Postman collections for *manual* e2e testing in the postman directory. Just import the collection and environment file into your Postman workspace and anyone can run the server and then execute the requests while watching the terminal for logging. Postman provides a ver easy interface for writing e2e tests and if you install their CLI tool called **Newman** you can simple run `newman path/to/collection.json -e path/to/environment-file.json to while the server is running to execute the e2e tests.
+I've included Postman collections for *manual* e2e testing in the postman directory. Just import the collection and environment file into your Postman workspace and anyone can run the server and then execute the requests while watching the terminal for logging. Postman provides a ver easy interface for writing e2e tests and if you install their CLI tool called **Newman** you can simple run `newman path/to/collection.json -e path/to/environment-file.json` to while the server is running to execute the e2e tests.
